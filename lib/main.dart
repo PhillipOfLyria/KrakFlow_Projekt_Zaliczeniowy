@@ -1,75 +1,103 @@
 import 'package:flutter/material.dart';
+import 'task_repository.dart';
+import 'add_task_screen.dart';
 
 void main() {
   runApp(MyApp());
 }
 
-class Task {
-  final String title;
-  final String deadline;
-  final bool done;
-  final String priority;
-
-  Task({
-    required this.title,
-    required this.deadline,
-    required this.done,
-    required this.priority,
-  });
-}
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
-
-  final List<Task> tasks = [
-    Task(title: "Przygotować prezentację",      deadline: "jutro",      done: true,  priority: "wysoki"),
-    Task(title: "Oddać raport z laboratoriów",  deadline: "dzisiaj",    done: true,  priority: "wysoki"),
-    Task(title: "Powtórzyć widgety Flutter",    deadline: "w piątek",   done: false, priority: "średni"),
-    Task(title: "Napisać notatki do kolokwium", deadline: "w weekend",  done: false, priority: "niski"),
-  ];
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final int doneCount = tasks.where((t) => t.done).length;
     return MaterialApp(
       title: "KrakFlow",
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text("KrakFlow"),
-        ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Masz dziś ${tasks.length} zadania",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  Text(
-                    "Wykonano: $doneCount / ${tasks.length}",
-                    style: TextStyle(fontSize: 14, color: Colors.green),
-                  ),
-                ],
-              ),
+      home: HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final int doneCount = TaskRepository.tasks.where((t) => t.done).length;
+    final int total     = TaskRepository.tasks.length;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("KrakFlow"),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Masz dziś $total zadania",
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                Text(
+                  "Wykonano: $doneCount / $total",
+                  style: TextStyle(fontSize: 14, color: Colors.green),
+                ),
+              ],
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  final task = tasks[index];
-                  return TaskCard(
-                    title: task.title,
-                    subtitle: "termin: ${task.deadline} | priorytet: ${task.priority}",
-                    icon: task.done ? Icons.check_circle : Icons.radio_button_unchecked,
-                  );
-                },
-              ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: TaskRepository.tasks.length,
+              itemBuilder: (context, index) {
+                final task = TaskRepository.tasks[index];
+                return TaskCard(
+                  title: task.title,
+                  subtitle:
+                  "termin: ${task.deadline} | priorytet: ${task.priority}",
+                  icon: task.done
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final Task? newTask = await Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => AddTaskScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                final offsetAnimation = Tween<Offset>(
+                  begin: Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(animation);
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: child,
+                );
+              },
+            ),
+          );
+
+          if (newTask != null) {
+            setState(() {
+              TaskRepository.tasks.add(newTask);
+            });
+          }
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
