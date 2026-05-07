@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'task_repository.dart';
 import 'add_task_screen.dart';
 import 'edit_task_screen.dart';
+import 'services/task_api_service.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,6 +29,24 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String selectedFilter = "wszystkie";
+  bool isLoading = true;      // ← to musi być tutaj
+  String? errorMessage;       // ← i to
+
+  @override
+  void initState() {
+    super.initState();
+    TaskApiService.fetchTasks().then((tasks) {
+      setState(() {
+        TaskRepository.tasks = tasks;
+        isLoading = false;
+      });
+    }).catchError((error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    });
+  }
 
   void _showDeleteAllDialog() {
     final bool isEmpty = TaskRepository.tasks.isEmpty;
@@ -126,7 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : errorMessage != null
+                ? Center(child: Text("Błąd: $errorMessage"))
+                : ListView.builder(
               itemCount: filteredTasks.length,
               itemBuilder: (context, index) {
                 final task = filteredTasks[index];
