@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'task_repository.dart';
+import 'dart:math';
 
 class AddTaskScreen extends StatelessWidget {
   AddTaskScreen({super.key});
@@ -49,10 +50,11 @@ class AddTaskScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   final newTask = Task(
-                    title:    titleController.text,
+                    id: Random().nextInt(1000000),
+                    title: titleController.text,
                     deadline: deadlineController.text,
                     priority: priorityController.text,
-                    done:     false,   // nowe zadanie zawsze nieukończone
+                    done: false,
                   );
                   // zwraca Task do poprzedniego ekranu (Zadanie 8)
                   Navigator.pop(context, newTask);

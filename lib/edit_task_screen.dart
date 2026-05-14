@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'task_repository.dart';
+import 'dart:math';
 
 class EditTaskScreen extends StatefulWidget {
   final Task task;
@@ -46,6 +47,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     }
 
     final updatedTask = Task(
+      id: widget.task.id,
       title: title,
       deadline: deadline,
       priority: _selectedPriority,
